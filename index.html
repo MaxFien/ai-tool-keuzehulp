@@ -1,395 +1,420 @@
-import React, { useState } from 'react';
-import { ChevronRight, ChevronLeft, FileText, Truck } from 'lucide-react';
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Tool Finder voor Logistiek</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div id="app"></div>
 
-const TransportAIToolFinder = () => {
-  const [currentScreen, setCurrentScreen] = useState('intro');
-  const [questionStep, setQuestionStep] = useState(0);
-  const [viewingProcessInfo, setViewingProcessInfo] = useState(false);
-  const [processInfoStep, setProcessInfoStep] = useState(0);
-  const [formData, setFormData] = useState({
-    bedrijfsnaam: '',
-    proces: '',
-    procesAnders: '',
-    pijnpunt: [],
-    specifiekeDoel: '',
-    oplossingstype: '',
-    digitalisatiegraad: '',
-    budget: '',
-    budgetJaarlijks: '',
-    roiVerwachting: '',
-    medewerkers: '',
-    groeiVerwachting: '',
-    urgentie: '',
-    technischeKennis: '',
-    trainingVoorkeur: '',
-    integratie: '',
-    systeemNaam: '',
-    dataGevoeligheid: [],
-    herkomst: '',
-    herkomstAnders: ''
-  });
-  const [generatedPrompt, setGeneratedPrompt] = useState('');
+    <script>
+        // Lucide icons als SVG strings
+        const icons = {
+            truck: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>',
+            fileText: '<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>',
+            chevronRight: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+            chevronLeft: '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>'
+        };
 
-  const processDescriptions = [
-    {
-      name: 'Forecasting',
-      description: 'Het voorspellen van transportvraag en capaciteitsbehoefte op basis van historische data en trends. AI kan patronen herkennen en nauwkeurige voorspellingen doen voor betere planning.'
-    },
-    {
-      name: 'Order Entry',
-      description: 'Het registreren en verwerken van transportopdrachten in het systeem. AI kan handmatige invoer automatiseren, fouten verminderen en orders sneller verwerken.'
-    },
-    {
-      name: 'Transport selectie/modaliteitskeuze',
-      description: 'Het kiezen van de juiste vervoerswijze (weg, rail, water, lucht) en vervoerder voor een specifieke opdracht. AI helpt de meest efficiënte en kosteneffectieve keuze te maken.'
-    },
-    {
-      name: 'Enkelvoudige transportplanning',
-      description: 'Het optimaliseren van individuele routes om tijd en brandstof te besparen. AI-algoritmes berekenen de beste route rekening houdend met verkeer, weersomstandigheden en restricties.'
-    },
-    {
-      name: 'Complexe transportplanning',
-      description: 'Het bundelen van vrachten en ladingen, en samenwerken met andere partijen voor efficiënte planning. AI helpt bij het vinden van optimale combinaties en samenwerkingsmogelijkheden.'
-    },
-    {
-      name: 'Documentatie',
-      description: 'Het genereren, beheren en archiveren van transportdocumenten zoals CMR, facturen en douanepapieren. AI kan documenten automatisch genereren, scannen en verwerken.'
-    },
-    {
-      name: 'Goederen voorbereiding',
-      description: 'Het fysieke proces van laden, picken en klaarzetten van goederen. AI-tools ondersteunen met computer vision, robotica en slimme systemen om werkdruk te verlagen en fouten te minimaliseren.'
-    },
-    {
-      name: 'Transport uitvoering',
-      description: 'Het real-time monitoren en bijsturen van transporten onderweg. AI biedt live tracking, voorspelt vertragingen en stelt automatisch alternatieve routes voor.'
-    },
-    {
-      name: 'Goederen afleveren',
-      description: 'Het fysieke afleverproces met ondersteuning voor efficiëntie en foutreductie. Denk aan digitale handtekeningen, automatische foto\'s, bewijs van levering en slimme routering voor bezorgers.'
-    },
-    {
-      name: 'Facturatie en afwikkeling',
-      description: 'Het automatisch genereren van facturen en afhandelen van betalingen. AI kan facturen genereren op basis van gerealiseerde transporten en betalingen automatisch verwerken.'
-    },
-    {
-      name: 'Dashboarding',
-      description: 'Het visualiseren van KPI\'s, prestaties en bedrijfsdata voor betere besluitvorming. AI-dashboards tonen real-time inzichten en voorspellingen voor proactief management.'
-    },
-    {
-      name: 'Samenwerking en communicatie',
-      description: 'Het delen van informatie met klanten, chauffeurs en andere stakeholders. Inclusief AI-chatbots voor klantenservice, geautomatiseerde updates en slimme communicatietools die vragen begrijpen en beantwoorden.'
-    }
-  ];
+        const app = {
+            currentScreen: 'intro',
+            questionStep: 0,
+            viewingProcessInfo: false,
+            processInfoStep: 0,
+            formData: {
+                bedrijfsnaam: '',
+                proces: '',
+                procesAnders: '',
+                pijnpunt: [],
+                specifiekeDoel: '',
+                oplossingstype: '',
+                digitalisatiegraad: '',
+                budget: '',
+                budgetJaarlijks: '',
+                roiVerwachting: '',
+                medewerkers: '',
+                groeiVerwachting: '',
+                urgentie: '',
+                technischeKennis: '',
+                trainingVoorkeur: '',
+                integratie: '',
+                systeemNaam: '',
+                dataGevoeligheid: [],
+                herkomst: '',
+                herkomstAnders: ''
+            },
+            generatedPrompt: '',
 
-  const questions = [
-    {
-      id: 'bedrijfsnaam',
-      question: 'Wat is de naam van uw bedrijf?',
-      type: 'text',
-      placeholder: 'Bijv. Transport Solutions BV'
-    },
-    {
-      id: 'proces',
-      question: 'Welk proces wilt u verbeteren met AI-tools?',
-      type: 'select',
-      options: [
-        'Forecasting',
-        'Order Entry',
-        'Transport selectie/modaliteitskeuze',
-        'Enkelvoudige transportplanning',
-        'Complexe transportplanning',
-        'Documentatie',
-        'Goederen voorbereiding',
-        'Transport uitvoering',
-        'Goederen afleveren',
-        'Facturatie en afwikkeling',
-        'Dashboarding',
-        'Samenwerking en communicatie',
-        'Anders'
-      ],
-      hasInfo: true,
-      infoButtonText: '📖 Bekijk uitleg van alle processen'
-    },
-    {
-      id: 'procesAnders',
-      question: 'Kunt u aangeven welk ander proces u wilt verbeteren?',
-      type: 'textarea',
-      placeholder: 'Beschrijf het proces dat u wilt verbeteren',
-      conditional: true,
-      showWhen: ['Anders']
-    },
-    {
-      id: 'pijnpunt',
-      question: 'Wat is momenteel uw grootste uitdaging in dit proces? (meerdere antwoorden mogelijk)',
-      type: 'multiselect',
-      options: [
-        'Te tijdrovend/handmatig werk',
-        'Te veel fouten',
-        'Geen real-time inzicht',
-        'Slechte communicatie met klanten/partners',
-        'Hoge operationele kosten',
-        'Anders'
-      ],
-      optional: true
-    },
-    {
-      id: 'specifiekeDoel',
-      question: 'Kunt u het doel specifieker omschrijven?',
-      type: 'textarea',
-      placeholder: 'Bijv. We willen onze rijtijden met 15% verkorten en brandstofkosten verlagen'
-    },
-    {
-      id: 'oplossingstype',
-      question: 'Wat voor type oplossing zoekt u?',
-      type: 'select',
-      options: [
-        'Zelfstandige AI-tool (specifiek voor één functie)',
-        'AI-functionaliteit binnen bestaand systeem (TMS/WMS/ERP met AI)',
-        'Complete softwaresystemen met AI-ondersteuning',
-        'Geen voorkeur - alle opties tonen',
-        'Anders'
-      ]
-    },
-    {
-      id: 'digitalisatiegraad',
-      question: 'Hoe digitaal werkt uw bedrijf momenteel?',
-      type: 'select',
-      options: [
-        'Voornamelijk papier en Excel',
-        'Mix van papier en digitale systemen',
-        'Grotendeels gedigitaliseerd met losse systemen',
-        'Volledig geïntegreerd digitaal ecosysteem',
-        'Anders'
-      ]
-    },
-    {
-      id: 'budget',
-      question: 'Wat is uw eenmalige investeringsbudget (aanschaf/implementatie)?',
-      type: 'select',
-      options: [
-        'Minder dan €5.000',
-        '€5.000 - €15.000',
-        '€15.000 - €30.000',
-        '€30.000 - €50.000',
-        'Meer dan €50.000',
-        'Anders'
-      ]
-    },
-    {
-      id: 'budgetJaarlijks',
-      question: 'Wat is uw jaarlijks budget voor licenties en onderhoud?',
-      type: 'select',
-      options: [
-        'Minder dan €1.000 per jaar',
-        '€1.000 - €5.000 per jaar',
-        '€5.000 - €15.000 per jaar',
-        '€15.000 - €30.000 per jaar',
-        'Meer dan €30.000 per jaar',
-        'Anders'
-      ]
-    },
-    {
-      id: 'roiVerwachting',
-      question: 'Binnen welke termijn verwacht u rendement te zien?',
-      type: 'select',
-      options: [
-        'Direct (binnen 3 maanden)',
-        'Kort (3-6 maanden)',
-        'Middellang (6-12 maanden)',
-        'Lang (1-2 jaar)',
-        'Onbekend',
-        'Anders'
-      ]
-    },
-    {
-      id: 'medewerkers',
-      question: 'Hoeveel medewerkers zullen de tool gebruiken?',
-      type: 'select',
-      options: [
-        '1-5 medewerkers',
-        '6-15 medewerkers',
-        '16-50 medewerkers',
-        'Meer dan 50 medewerkers',
-        'Anders'
-      ]
-    },
-    {
-      id: 'groeiVerwachting',
-      question: 'Verwacht u groei in de komende 2 jaar?',
-      type: 'select',
-      options: [
-        'Nee, huidige schaal blijft gelijk',
-        'Ja, matige groei (0-5%)',
-        'Ja, sterke groei (6-15%)',
-        'Ja, zeer sterke groei (16-25%)',
-        'Ja, extreme groei (25%+)',
-        'Anders'
-      ]
-    },
-    {
-      id: 'urgentie',
-      question: 'Hoe urgent is de implementatie?',
-      type: 'select',
-      options: [
-        'Direct nodig (binnen 1 maand)',
-        'Op korte termijn (1-3 maanden)',
-        'Middellange termijn (3-6 maanden)',
-        'Verkenningsfase (6+ maanden)',
-        'Anders'
-      ]
-    },
-    {
-      id: 'technischeKennis',
-      question: 'Hoe is de technische kennis binnen uw bedrijf?',
-      type: 'select',
-      options: [
-        'Beperkt - we hebben externe ondersteuning nodig',
-        'Gemiddeld - basis IT-kennis aanwezig',
-        'Goed - ervaren met software implementaties',
-        'Uitstekend - eigen IT-afdeling',
-        'Anders'
-      ]
-    },
-    {
-      id: 'trainingVoorkeur',
-      question: 'Welke vorm van training en ondersteuning heeft u nodig?',
-      type: 'textarea',
-      placeholder: 'Bijv. online training sessies, on-site training, dedicated account manager, etc.'
-    },
-    {
-      id: 'integratie',
-      question: 'Moet de tool integreren met bestaande systemen?',
-      type: 'select',
-      options: [
-        'Ja, met TMS (Transport Management Systeem)',
-        'Ja, met ERP-systeem',
-        'Ja, met WMS-systeem',
-        'Ja, met boekhoudsoftware',
-        'Ja, met meerdere systemen',
-        'Nee, standalone oplossing is voldoende',
-        'Weet ik niet zeker',
-        'Anders'
-      ]
-    },
-    {
-      id: 'systeemNaam',
-      question: 'Met welk systeem of welke systemen moet de tool kunnen integreren?',
-      type: 'textarea',
-      placeholder: 'Bijv. SAP ERP, Exact Online, TransFollow TMS, etc.',
-      conditional: true,
-      showWhen: ['Ja, met TMS (Transport Management Systeem)', 'Ja, met ERP-systeem', 'Ja, met WMS-systeem', 'Ja, met boekhoudsoftware', 'Ja, met meerdere systemen']
-    },
-    {
-      id: 'dataGevoeligheid',
-      question: 'Verwerkt u gevoelige data waarvoor extra beveiligingseisen gelden? (meerdere antwoorden mogelijk)',
-      type: 'multiselect',
-      options: [
-        'Nee, standaard bedrijfsdata',
-        'Ja, klantgegevens (AVG-gevoelig)',
-        'Ja, financiële data',
-        'Ja, contractuele/vertrouwelijke informatie',
-        'Weet ik niet zeker',
-        'Anders'
-      ],
-      optional: true
-    },
-    {
-      id: 'herkomst',
-      question: 'Heeft u een voorkeur voor de herkomst van de AI-tool?',
-      type: 'select',
-      options: [
-        'Geen voorkeur - beste oplossing telt',
-        'Bij voorkeur Nederlandse aanbieder',
-        'Bij voorkeur Europese aanbieder',
-        'Bij voorkeur buiten Europa',
-        'Anders'
-      ]
-    },
-    {
-      id: 'herkomstAnders',
-      question: 'Kunt u uw voorkeur voor herkomst toelichten?',
-      type: 'textarea',
-      placeholder: 'Bijv. alleen aanbieders uit specifieke landen, of juist bepaalde landen uitsluiten',
-      conditional: true,
-      showWhen: ['Anders']
-    }
-  ];
+            processDescriptions: [
+                {
+                    name: 'Forecasting',
+                    description: 'Het voorspellen van transportvraag en capaciteitsbehoefte op basis van historische data en trends. AI kan patronen herkennen en nauwkeurige voorspellingen doen voor betere planning.'
+                },
+                {
+                    name: 'Order Entry',
+                    description: 'Het registreren en verwerken van transportopdrachten in het systeem. AI kan handmatige invoer automatiseren, fouten verminderen en orders sneller verwerken.'
+                },
+                {
+                    name: 'Transport selectie/modaliteitskeuze',
+                    description: 'Het kiezen van de juiste vervoerswijze (weg, rail, water, lucht) en vervoerder voor een specifieke opdracht. AI helpt de meest efficiënte en kosteneffectieve keuze te maken.'
+                },
+                {
+                    name: 'Enkelvoudige transportplanning',
+                    description: 'Het optimaliseren van individuele routes om tijd en brandstof te besparen. AI-algoritmes berekenen de beste route rekening houdend met verkeer, weersomstandigheden en restricties.'
+                },
+                {
+                    name: 'Complexe transportplanning',
+                    description: 'Het bundelen van vrachten en ladingen, en samenwerken met andere partijen voor efficiënte planning. AI helpt bij het vinden van optimale combinaties en samenwerkingsmogelijkheden.'
+                },
+                {
+                    name: 'Documentatie',
+                    description: 'Het genereren, beheren en archiveren van transportdocumenten zoals CMR, facturen en douanepapieren. AI kan documenten automatisch genereren, scannen en verwerken.'
+                },
+                {
+                    name: 'Goederen voorbereiding',
+                    description: 'Het fysieke proces van laden, picken en klaarzetten van goederen. AI-tools ondersteunen met computer vision, robotica en slimme systemen om werkdruk te verlagen en fouten te minimaliseren.'
+                },
+                {
+                    name: 'Transport uitvoering',
+                    description: 'Het real-time monitoren en bijsturen van transporten onderweg. AI biedt live tracking, voorspelt vertragingen en stelt automatisch alternatieve routes voor.'
+                },
+                {
+                    name: 'Goederen afleveren',
+                    description: 'Het fysieke afleverproces met ondersteuning voor efficiëntie en foutreductie. Denk aan digitale handtekeningen, automatische foto\'s, bewijs van levering en slimme routering voor bezorgers.'
+                },
+                {
+                    name: 'Facturatie en afwikkeling',
+                    description: 'Het automatisch genereren van facturen en afhandelen van betalingen. AI kan facturen genereren op basis van gerealiseerde transporten en betalingen automatisch verwerken.'
+                },
+                {
+                    name: 'Dashboarding',
+                    description: 'Het visualiseren van KPI\'s, prestaties en bedrijfsdata voor betere besluitvorming. AI-dashboards tonen real-time inzichten en voorspellingen voor proactief management.'
+                },
+                {
+                    name: 'Samenwerking en communicatie',
+                    description: 'Het delen van informatie met klanten, chauffeurs en andere stakeholders. Inclusief AI-chatbots voor klantenservice, geautomatiseerde updates en slimme communicatietools die vragen begrijpen en beantwoorden.'
+                }
+            ],
 
-  const handleInputChange = (id, value) => {
-    setFormData(prev => ({ ...prev, [id]: value }));
-  };
+            questions: [
+                {
+                    id: 'bedrijfsnaam',
+                    question: 'Wat is de naam van uw bedrijf?',
+                    type: 'text',
+                    placeholder: 'Bijv. Transport Solutions BV'
+                },
+                {
+                    id: 'proces',
+                    question: 'Welk proces wilt u verbeteren met AI-tools?',
+                    type: 'select',
+                    options: [
+                        'Forecasting',
+                        'Order Entry',
+                        'Transport selectie/modaliteitskeuze',
+                        'Enkelvoudige transportplanning',
+                        'Complexe transportplanning',
+                        'Documentatie',
+                        'Goederen voorbereiding',
+                        'Transport uitvoering',
+                        'Goederen afleveren',
+                        'Facturatie en afwikkeling',
+                        'Dashboarding',
+                        'Samenwerking en communicatie',
+                        'Anders'
+                    ],
+                    hasInfo: true,
+                    infoButtonText: '📖 Bekijk uitleg van alle processen'
+                },
+                {
+                    id: 'procesAnders',
+                    question: 'Kunt u aangeven welk ander proces u wilt verbeteren?',
+                    type: 'textarea',
+                    placeholder: 'Beschrijf het proces dat u wilt verbeteren',
+                    conditional: true,
+                    showWhen: ['Anders']
+                },
+                {
+                    id: 'pijnpunt',
+                    question: 'Wat is momenteel uw grootste uitdaging in dit proces? (meerdere antwoorden mogelijk)',
+                    type: 'multiselect',
+                    options: [
+                        'Te tijdrovend/handmatig werk',
+                        'Te veel fouten',
+                        'Geen real-time inzicht',
+                        'Slechte communicatie met klanten/partners',
+                        'Hoge operationele kosten',
+                        'Anders'
+                    ],
+                    optional: true
+                },
+                {
+                    id: 'specifiekeDoel',
+                    question: 'Kunt u het doel specifieker omschrijven?',
+                    type: 'textarea',
+                    placeholder: 'Bijv. We willen onze rijtijden met 15% verkorten en brandstofkosten verlagen'
+                },
+                {
+                    id: 'oplossingstype',
+                    question: 'Wat voor type oplossing zoekt u?',
+                    type: 'select',
+                    options: [
+                        'Zelfstandige AI-tool (specifiek voor één functie)',
+                        'AI-functionaliteit binnen bestaand systeem (TMS/WMS/ERP met AI)',
+                        'Complete softwaresystemen met AI-ondersteuning',
+                        'Geen voorkeur - alle opties tonen',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'digitalisatiegraad',
+                    question: 'Hoe digitaal werkt uw bedrijf momenteel?',
+                    type: 'select',
+                    options: [
+                        'Voornamelijk papier en Excel',
+                        'Mix van papier en digitale systemen',
+                        'Grotendeels gedigitaliseerd met losse systemen',
+                        'Volledig geïntegreerd digitaal ecosysteem',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'budget',
+                    question: 'Wat is uw eenmalige investeringsbudget (aanschaf/implementatie)?',
+                    type: 'select',
+                    options: [
+                        'Minder dan €5.000',
+                        '€5.000 - €15.000',
+                        '€15.000 - €30.000',
+                        '€30.000 - €50.000',
+                        'Meer dan €50.000',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'budgetJaarlijks',
+                    question: 'Wat is uw jaarlijks budget voor licenties en onderhoud?',
+                    type: 'select',
+                    options: [
+                        'Minder dan €1.000 per jaar',
+                        '€1.000 - €5.000 per jaar',
+                        '€5.000 - €15.000 per jaar',
+                        '€15.000 - €30.000 per jaar',
+                        'Meer dan €30.000 per jaar',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'roiVerwachting',
+                    question: 'Binnen welke termijn verwacht u rendement te zien?',
+                    type: 'select',
+                    options: [
+                        'Direct (binnen 3 maanden)',
+                        'Kort (3-6 maanden)',
+                        'Middellang (6-12 maanden)',
+                        'Lang (1-2 jaar)',
+                        'Onbekend',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'medewerkers',
+                    question: 'Hoeveel medewerkers zullen de tool gebruiken?',
+                    type: 'select',
+                    options: [
+                        '1-5 medewerkers',
+                        '6-15 medewerkers',
+                        '16-50 medewerkers',
+                        'Meer dan 50 medewerkers',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'groeiVerwachting',
+                    question: 'Verwacht u groei in de komende 2 jaar?',
+                    type: 'select',
+                    options: [
+                        'Nee, huidige schaal blijft gelijk',
+                        'Ja, matige groei (0-5%)',
+                        'Ja, sterke groei (6-15%)',
+                        'Ja, zeer sterke groei (16-25%)',
+                        'Ja, extreme groei (25%+)',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'urgentie',
+                    question: 'Hoe urgent is de implementatie?',
+                    type: 'select',
+                    options: [
+                        'Direct nodig (binnen 1 maand)',
+                        'Op korte termijn (1-3 maanden)',
+                        'Middellange termijn (3-6 maanden)',
+                        'Verkenningsfase (6+ maanden)',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'technischeKennis',
+                    question: 'Hoe is de technische kennis binnen uw bedrijf?',
+                    type: 'select',
+                    options: [
+                        'Beperkt - we hebben externe ondersteuning nodig',
+                        'Gemiddeld - basis IT-kennis aanwezig',
+                        'Goed - ervaren met software implementaties',
+                        'Uitstekend - eigen IT-afdeling',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'trainingVoorkeur',
+                    question: 'Welke vorm van training en ondersteuning heeft u nodig?',
+                    type: 'textarea',
+                    placeholder: 'Bijv. online training sessies, on-site training, dedicated account manager, etc.'
+                },
+                {
+                    id: 'integratie',
+                    question: 'Moet de tool integreren met bestaande systemen?',
+                    type: 'select',
+                    options: [
+                        'Ja, met TMS (Transport Management Systeem)',
+                        'Ja, met ERP-systeem',
+                        'Ja, met WMS-systeem',
+                        'Ja, met boekhoudsoftware',
+                        'Ja, met meerdere systemen',
+                        'Nee, standalone oplossing is voldoende',
+                        'Weet ik niet zeker',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'systeemNaam',
+                    question: 'Met welk systeem of welke systemen moet de tool kunnen integreren?',
+                    type: 'textarea',
+                    placeholder: 'Bijv. SAP ERP, Exact Online, TransFollow TMS, etc.',
+                    conditional: true,
+                    showWhen: ['Ja, met TMS (Transport Management Systeem)', 'Ja, met ERP-systeem', 'Ja, met WMS-systeem', 'Ja, met boekhoudsoftware', 'Ja, met meerdere systemen']
+                },
+                {
+                    id: 'dataGevoeligheid',
+                    question: 'Verwerkt u gevoelige data waarvoor extra beveiligingseisen gelden? (meerdere antwoorden mogelijk)',
+                    type: 'multiselect',
+                    options: [
+                        'Nee, standaard bedrijfsdata',
+                        'Ja, klantgegevens (AVG-gevoelig)',
+                        'Ja, financiële data',
+                        'Ja, contractuele/vertrouwelijke informatie',
+                        'Weet ik niet zeker',
+                        'Anders'
+                    ],
+                    optional: true
+                },
+                {
+                    id: 'herkomst',
+                    question: 'Heeft u een voorkeur voor de herkomst van de AI-tool?',
+                    type: 'select',
+                    options: [
+                        'Geen voorkeur - beste oplossing telt',
+                        'Bij voorkeur Nederlandse aanbieder',
+                        'Bij voorkeur Europese aanbieder',
+                        'Bij voorkeur buiten Europa',
+                        'Anders'
+                    ]
+                },
+                {
+                    id: 'herkomstAnders',
+                    question: 'Kunt u uw voorkeur voor herkomst toelichten?',
+                    type: 'textarea',
+                    placeholder: 'Bijv. alleen aanbieders uit specifieke landen, of juist bepaalde landen uitsluiten',
+                    conditional: true,
+                    showWhen: ['Anders']
+                }
+            ],
 
-  const handleMultiSelectChange = (id, option) => {
-    setFormData(prev => {
-      const currentValues = prev[id] || [];
-      const isSelected = currentValues.includes(option);
-      
-      if (isSelected) {
-        return { ...prev, [id]: currentValues.filter(v => v !== option) };
-      } else {
-        return { ...prev, [id]: [...currentValues, option] };
-      }
-    });
-  };
+            handleInputChange(id, value) {
+                this.formData[id] = value;
+                this.render();
+            },
 
-  const generatePrompt = () => {
-    const procesText = formData.proces === 'Anders' ? formData.procesAnders : formData.proces;
-    
-    const prompt = `
-# AI Tool Zoekopdracht voor ${formData.bedrijfsnaam || 'Transportbedrijf'}
+            handleMultiSelectChange(id, option) {
+                const currentValues = this.formData[id] || [];
+                const isSelected = currentValues.includes(option);
+                
+                if (isSelected) {
+                    this.formData[id] = currentValues.filter(v => v !== option);
+                } else {
+                    this.formData[id] = [...currentValues, option];
+                }
+                this.render();
+            },
+
+            generatePrompt() {
+                const procesText = this.formData.proces === 'Anders' ? this.formData.procesAnders : this.formData.proces;
+                const pijnpuntText = Array.isArray(this.formData.pijnpunt) ? this.formData.pijnpunt.join(', ') : this.formData.pijnpunt;
+                const dataGevoeligheidText = Array.isArray(this.formData.dataGevoeligheid) ? this.formData.dataGevoeligheid.join(', ') : this.formData.dataGevoeligheid;
+                
+                this.generatedPrompt = `
+# AI Tool Zoekopdracht voor ${this.formData.bedrijfsnaam || 'Transportbedrijf'}
 
 ## Bedrijfsprofiel
 - **Sector**: Transport en logistiek (MKB)
-- **Aantal gebruikers**: ${formData.medewerkers}
-- **Groei verwachting**: ${formData.groeiVerwachting}
-- **Huidige digitalisatie**: ${formData.digitalisatiegraad}
-- **Technisch niveau**: ${formData.technischeKennis}
+- **Aantal gebruikers**: ${this.formData.medewerkers}
+- **Groei verwachting**: ${this.formData.groeiVerwachting}
+- **Huidige digitalisatie**: ${this.formData.digitalisatiegraad}
+- **Technisch niveau**: ${this.formData.technischeKennis}
 
 ## Te verbeteren proces
 **Hoofdproces**: ${procesText}
 
-**Grootste uitdaging**: ${Array.isArray(formData.pijnpunt) ? formData.pijnpunt.join(', ') : formData.pijnpunt}
+**Grootste uitdaging**: ${pijnpuntText}
 
-**Specifiek doel**: ${formData.specifiekeDoel}
+**Specifiek doel**: ${this.formData.specifiekeDoel}
 
-**Type oplossing**: ${formData.oplossingstype}
+**Type oplossing**: ${this.formData.oplossingstype}
 
 ## Zoekcriteria voor AI-tools
 
 ### Budget en Implementatie
-- **Eenmalig budget (aanschaf/implementatie)**: ${formData.budget}
-- **Jaarlijks budget (licenties/onderhoud)**: ${formData.budgetJaarlijks}
-- **ROI verwachting**: ${formData.roiVerwachting}
-- **Implementatietijd**: ${formData.urgentie}
-- **Integratie-eisen**: ${formData.integratie}
-${formData.systeemNaam ? `- **Specifieke systemen**: ${formData.systeemNaam}` : ''}
-- **Data gevoeligheid**: ${Array.isArray(formData.dataGevoeligheid) ? formData.dataGevoeligheid.join(', ') : formData.dataGevoeligheid}
-- **Voorkeur herkomst**: ${formData.herkomst}
-${formData.herkomstAnders ? `- **Toelichting herkomst**: ${formData.herkomstAnders}` : ''}
+- **Eenmalig budget (aanschaf/implementatie)**: ${this.formData.budget}
+- **Jaarlijks budget (licenties/onderhoud)**: ${this.formData.budgetJaarlijks}
+- **ROI verwachting**: ${this.formData.roiVerwachting}
+- **Implementatietijd**: ${this.formData.urgentie}
+- **Integratie-eisen**: ${this.formData.integratie}
+${this.formData.systeemNaam ? `- **Specifieke systemen**: ${this.formData.systeemNaam}` : ''}
+- **Data gevoeligheid**: ${dataGevoeligheidText}
+- **Voorkeur herkomst**: ${this.formData.herkomst}
+${this.formData.herkomstAnders ? `- **Toelichting herkomst**: ${this.formData.herkomstAnders}` : ''}
 
 ### Training en Ondersteuning
-- **Gewenste training**: ${formData.trainingVoorkeur}
-- **Technische kennis team**: ${formData.technischeKennis}
+- **Gewenste training**: ${this.formData.trainingVoorkeur}
+- **Technische kennis team**: ${this.formData.technischeKennis}
 
 ### Gezochte functionaliteiten
 Zoek naar AI-tools die specifiek geschikt zijn voor:
 1. ${procesText} in de transportsector
 2. MKB-vriendelijk (niet te complex, betaalbaar)
-3. ${formData.integratie.includes('Ja') ? 'Met integratiemogelijkheden' : 'Als standalone oplossing'}
-4. Geschikt voor teams van ${formData.medewerkers}
-5. Type oplossing: ${formData.oplossingstype}
+3. ${this.formData.integratie.includes('Ja') ? 'Met integratiemogelijkheden' : 'Als standalone oplossing'}
+4. Geschikt voor teams van ${this.formData.medewerkers}
+5. Type oplossing: ${this.formData.oplossingstype}
 
-**BELANGRIJK**: Geef een lijst van minimaal 10 verschillende AI-tools die aan deze criteria voldoen. Sorteer ze op relevantie en geschiktheid voor het specifieke proces. Let vooral op het gewenste oplossingstype: ${formData.oplossingstype}
+**BELANGRIJK**: Geef een lijst van minimaal 10 verschillende AI-tools die aan deze criteria voldoen. Sorteer ze op relevantie en geschiktheid voor het specifieke proces. Let vooral op het gewenste oplossingstype: ${this.formData.oplossingstype}
 
 ### Belangrijke selectiecriteria
-- **Gebruiksvriendelijkheid**: Moet passen bij ${formData.technischeKennis.toLowerCase()}
-- **Eenmalige investering**: Binnen budgetrange ${formData.budget}
-- **Jaarlijkse kosten**: Binnen budgetrange ${formData.budgetJaarlijks}
-- **ROI**: Rendement binnen ${formData.roiVerwachting.toLowerCase()}
-- **Implementatietijd**: Realistisch voor ${formData.urgentie.toLowerCase()}
-- **Schaalbaarheid**: ${formData.groeiVerwachting}
-- **Training & Support**: ${formData.trainingVoorkeur}
-- **Data beveiliging**: ${formData.dataGevoeligheid}
+- **Gebruiksvriendelijkheid**: Moet passen bij ${this.formData.technischeKennis.toLowerCase()}
+- **Eenmalige investering**: Binnen budgetrange ${this.formData.budget}
+- **Jaarlijkse kosten**: Binnen budgetrange ${this.formData.budgetJaarlijks}
+- **ROI**: Rendement binnen ${this.formData.roiVerwachting.toLowerCase()}
+- **Implementatietijd**: Realistisch voor ${this.formData.urgentie.toLowerCase()}
+- **Schaalbaarheid**: ${this.formData.groeiVerwachting}
+- **Training & Support**: ${this.formData.trainingVoorkeur}
+- **Data beveiliging**: ${this.formData.dataGevoeligheid}
 - **Nederlandse ondersteuning**: Bij voorkeur beschikbaar
 
 ### Zoektermen voor online research
@@ -407,7 +432,7 @@ Voor elke tool in de lijst van minimaal 10 opties, evalueer:
 3. Gebruiksvriendelijkheid: Demo beschikbaar?
 4. Referenties: Ervaringen van vergelijkbare transportbedrijven
 5. Support: Beschikbaarheid Nederlandse support
-6. Integratie: ${formData.integratie}
+6. Integratie: ${this.formData.integratie}
 7. Proefperiode: Mogelijkheid tot testen voor aankoop
 
 ### Gewenste output
@@ -417,7 +442,7 @@ Geef een overzicht van minimaal 10 AI-tools in een gestructureerde lijst met voo
 - Belangrijkste functionaliteiten
 - Geschatte kosten
 - Sterke punten en aandachtspunten
-- Geschiktheid voor dit specifieke pijnpunt: ${Array.isArray(formData.pijnpunt) ? formData.pijnpunt.join(', ') : formData.pijnpunt}
+- Geschiktheid voor dit specifieke pijnpunt: ${pijnpuntText}
 - Link naar website (indien beschikbaar)
 
 **VERPLICHT: Maak een vergelijkingstabel** met alle 10+ tools en geef scores (1-5 sterren) voor:
@@ -436,7 +461,7 @@ Sluit tools uit die:
 - Alleen geschikt zijn voor grote enterprises (niet MKB-vriendelijk)
 - Buiten de opgegeven budgetrange vallen
 - Niet voldoen aan de opgegeven data beveiligingseisen
-- Niet passen bij de huidige digitalisatiegraad: ${formData.digitalisatiegraad}
+- Niet passen bij de huidige digitalisatiegraad: ${this.formData.digitalisatiegraad}
 
 ### Implementatie advies
 Geef voor de top 3 meest geschikte tools:
@@ -448,517 +473,563 @@ Geef voor de top 3 meest geschikte tools:
 ---
 
 **Tip**: Start met het aanvragen van demo's bij minimaal 3 verschillende aanbieders voordat u een definitieve keuze maakt.
-    `.trim();
+                `.trim();
 
-    setGeneratedPrompt(prompt);
-    setCurrentScreen('result');
-  };
+                this.currentScreen = 'result';
+                this.render();
+            },
 
-  const nextStep = () => {
-    if (questionStep >= questions.length - 1) {
-      generatePrompt();
-      return;
-    }
+            nextStep() {
+                if (this.questionStep >= this.questions.length - 1) {
+                    this.generatePrompt();
+                    return;
+                }
 
-    const currentQ = questions[questionStep];
-    
-    if (currentQ && currentQ.conditional && currentQ.showWhen) {
-      let previousAnswer;
-      if (currentQ.id === 'procesAnders') {
-        previousAnswer = formData['proces'];
-      } else if (currentQ.id === 'systeemNaam') {
-        previousAnswer = formData['integratie'];
-      } else if (currentQ.id === 'herkomstAnders') {
-        previousAnswer = formData['herkomst'];
-      }
-      
-      if (!currentQ.showWhen.includes(previousAnswer)) {
-        setQuestionStep(questionStep + 1);
-        return;
-      }
-    }
-    
-    let nextStepNum = questionStep + 1;
-    while (nextStepNum < questions.length) {
-      const nextQ = questions[nextStepNum];
-      if (nextQ.conditional && nextQ.showWhen) {
-        let relevantAnswer;
-        if (nextQ.id === 'procesAnders') {
-          relevantAnswer = formData['proces'];
-        } else if (nextQ.id === 'systeemNaam') {
-          relevantAnswer = formData['integratie'];
-        } else if (nextQ.id === 'herkomstAnders') {
-          relevantAnswer = formData['herkomst'];
-        }
-        
-        if (!nextQ.showWhen.includes(relevantAnswer)) {
-          nextStepNum++;
-          continue;
-        }
-      }
-      break;
-    }
-    
-    if (nextStepNum >= questions.length) {
-      generatePrompt();
-    } else {
-      setQuestionStep(nextStepNum);
-    }
-  };
-
-  const skipQuestion = () => {
-    if (questionStep < questions.length - 1) {
-      setQuestionStep(questionStep + 1);
-    } else {
-      generatePrompt();
-    }
-  };
-
-  const prevStep = () => {
-    if (questionStep === 0) {
-      setCurrentScreen('tips');
-    } else if (questionStep > 0) {
-      setQuestionStep(questionStep - 1);
-    }
-  };
-
-  const resetTool = () => {
-    setCurrentScreen('intro');
-    setQuestionStep(0);
-    setFormData({
-      bedrijfsnaam: '',
-      proces: '',
-      procesAnders: '',
-      pijnpunt: [],
-      specifiekeDoel: '',
-      oplossingstype: '',
-      digitalisatiegraad: '',
-      budget: '',
-      budgetJaarlijks: '',
-      roiVerwachting: '',
-      medewerkers: '',
-      groeiVerwachting: '',
-      urgentie: '',
-      technischeKennis: '',
-      trainingVoorkeur: '',
-      integratie: '',
-      systeemNaam: '',
-      dataGevoeligheid: [],
-      herkomst: '',
-      herkomstAnders: ''
-    });
-    setGeneratedPrompt('');
-  };
-
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(generatedPrompt);
-    alert('Prompt gekopieerd naar klembord!');
-  };
-
-  const currentQuestion = questionStep >= 0 && questionStep < questions.length ? questions[questionStep] : null;
-  
-  let progress = 0;
-  if (currentScreen === 'intro') {
-    progress = 0;
-  } else if (currentScreen === 'tips') {
-    progress = 5;
-  } else if (currentScreen === 'result') {
-    progress = 100;
-  } else {
-    progress = ((questionStep + 1) / (questions.length + 1)) * 100;
-  }
-
-  if (viewingProcessInfo) {
-    const currentProcess = processDescriptions[processInfoStep];
-    const processProgress = ((processInfoStep + 1) / processDescriptions.length) * 100;
-
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-xl p-8">
-            <div className="flex items-center gap-3 mb-6">
-              <Truck className="text-blue-600" size={32} />
-              <div>
-                <h1 className="text-3xl font-bold text-gray-800">Uitleg Transportprocessen</h1>
-                <p className="text-gray-600">Leer meer over elk proces</p>
-              </div>
-            </div>
-
-            <div className="mb-8">
-              <div className="w-full bg-gray-200 rounded-full h-2">
-                <div
-                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${processProgress}%` }}
-                />
-              </div>
-              <p className="text-sm text-gray-600 mt-2">
-                Proces {processInfoStep + 1} van {processDescriptions.length}
-              </p>
-            </div>
-
-            <div className="mb-8">
-              <div className="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
-                <h2 className="text-2xl font-bold text-blue-900 mb-4">
-                  {currentProcess.name}
-                </h2>
-                <p className="text-gray-700 leading-relaxed text-lg mb-4">
-                  {currentProcess.description}
-                </p>
-                <button
-                  onClick={() => {
-                    handleInputChange('proces', currentProcess.name);
-                    setViewingProcessInfo(false);
-                    setProcessInfoStep(0);
-                  }}
-                  className="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
-                >
-                  ✓ Kies dit proces
-                </button>
-              </div>
-            </div>
-
-            <div className="flex gap-4">
-              {processInfoStep > 0 && (
-                <button
-                  onClick={() => setProcessInfoStep(processInfoStep - 1)}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
-                >
-                  <ChevronLeft size={20} />
-                  Vorige
-                </button>
-              )}
-              
-              {processInfoStep < processDescriptions.length - 1 ? (
-                <button
-                  onClick={() => setProcessInfoStep(processInfoStep + 1)}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold"
-                >
-                  Volgende proces
-                  <ChevronRight size={20} />
-                </button>
-              ) : (
-                <button
-                  onClick={() => {
-                    setViewingProcessInfo(false);
-                    setProcessInfoStep(0);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold"
-                >
-                  ✓ Terug naar vragen
-                </button>
-              )}
-            </div>
-
-            <button
-              onClick={() => {
-                setViewingProcessInfo(false);
-                setProcessInfoStep(0);
-              }}
-              className="w-full mt-4 px-6 py-2 text-gray-600 hover:text-gray-800 transition"
-            >
-              ← Direct terug naar vragen
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  if (generatedPrompt && currentScreen === 'result') {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-        <div className="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <FileText className="text-green-600" size={32} />
-            <h2 className="text-2xl font-bold text-gray-800">Uw Gepersonaliseerde Zoekprompt</h2>
-          </div>
-          
-          <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6 max-h-96 overflow-y-auto">
-            <pre className="whitespace-pre-wrap text-sm text-gray-700 font-mono">
-              {generatedPrompt}
-            </pre>
-          </div>
-
-          <div className="mb-6 bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-3">📋 Volgende stap: Gebruik de prompt</h3>
-            <p className="text-gray-700 mb-3">
-              Kopieer de prompt hieronder en plak deze in een AI-chatbot naar keuze. De chatbot zal u helpen de beste AI-tools voor uw specifieke situatie te vinden.
-            </p>
-            <p className="text-gray-700 mb-2 font-semibold">Aanbevolen AI-chatbots:</p>
-            <ul className="list-disc list-inside ml-4 text-gray-600 space-y-1">
-              <li><strong>ChatGPT</strong> - chat.openai.com</li>
-              <li><strong>Claude</strong> - claude.ai</li>
-              <li><strong>Perplexity</strong> - perplexity.ai</li>
-              <li><strong>Google Gemini</strong> - gemini.google.com</li>
-              <li><strong>Microsoft Copilot</strong> - copilot.microsoft.com</li>
-              <li><strong>GPT-NL.com</strong> - gpt-nl.com</li>
-            </ul>
-            <p className="text-sm text-blue-700 mt-3 italic">
-              💡 Tip: Test de prompt bij meerdere chatbots voor een breder overzicht van beschikbare tools!
-            </p>
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              onClick={copyToClipboard}
-              className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold"
-            >
-              📋 Kopieer Prompt
-            </button>
-            <button
-              onClick={resetTool}
-              className="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-semibold"
-            >
-              🔄 Opnieuw Beginnen
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-3xl mx-auto">
-        <div className="bg-white rounded-lg shadow-xl p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <Truck className="text-blue-600" size={32} />
-            <div>
-              <h1 className="text-3xl font-bold text-gray-800">AI Tool Finder voor Logistiek</h1>
-              <p className="text-gray-600">Voor transportbedrijven</p>
-            </div>
-          </div>
-
-          {currentScreen === 'intro' ? (
-            <div>
-              <div className="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-8 rounded-lg">
-                <h2 className="text-2xl font-bold text-blue-900 mb-4">
-                  💡 Welkom bij de AI Tool Finder voor Logistiek
-                </h2>
-                <div className="space-y-4 text-gray-700 leading-relaxed">
-                  <p>
-                    Deze tool helpt u bij het vinden van geschikte AI-tools voor uw logistieke processen. 
-                  </p>
-                  
-                  <div className="bg-white p-4 rounded-lg border border-blue-200">
-                    <h3 className="font-semibold text-blue-900 mb-2">🔍 Hoe werkt het?</h3>
-                    <ol className="list-decimal list-inside space-y-2 ml-2">
-                      <li>U beantwoordt een aantal vragen over uw bedrijf, doelen en eisen</li>
-                      <li>De tool genereert een <strong>gepersonaliseerde zoekprompt</strong> op basis van uw antwoorden</li>
-                      <li>U kunt deze prompt kopiëren en plakken in een AI-chatbot zoals:
-                        <ul className="list-disc list-inside ml-6 mt-1 text-gray-600">
-                          <li>ChatGPT</li>
-                          <li>Claude</li>
-                          <li>Perplexity</li>
-                          <li>Google Gemini</li>
-                          <li>Microsoft Copilot</li>
-                          <li>GPT-NL.com</li>
-                        </ul>
-                      </li>
-                      <li>De chatbot helpt u vervolgens de beste AI-tools voor uw specifieke situatie te vinden</li>
-                    </ol>
-                  </div>
-
-                  <p className="text-sm text-gray-600 italic">
-                    💡 Het duurt ongeveer 5-12 minuten om alle vragen te beantwoorden.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setCurrentScreen('tips')}
-                className="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-lg"
-              >
-                Tips voordat u begint
-                <ChevronRight size={24} />
-              </button>
-            </div>
-          ) : currentScreen === 'tips' ? (
-            <div>
-              <div className="mb-6 bg-gradient-to-r from-green-50 to-teal-50 border-l-4 border-green-600 p-8 rounded-lg">
-                <h2 className="text-2xl font-bold text-green-900 mb-4">
-                  💡 Tips voordat u begint
-                </h2>
-                <div className="space-y-4 text-gray-700 leading-relaxed">
-                  <p>
-                    Om het maximale uit deze tool te halen, hebben we een aantal handige tips voor u:
-                  </p>
-                  
-                  <div className="bg-white p-4 rounded-lg border border-green-200">
-                    <h3 className="font-semibold text-green-900 mb-3">📝 Aanbevelingen:</h3>
-                    <ul className="space-y-3">
-                      <li className="flex gap-3">
-                        <span className="text-green-600 font-bold mt-1">1.</span>
-                        <div>
-                          <strong>Wees zo compleet mogelijk:</strong> Hoe uitgebreider en specifieker u de vragen beantwoordt, hoe relevanter en gerichter de aanbevolen AI-tools zullen zijn. Neem de tijd om uw situatie goed te beschrijven.
-                        </div>
-                      </li>
-                      <li className="flex gap-3">
-                        <span className="text-green-600 font-bold mt-1">2.</span>
-                        <div>
-                          <strong>Test bij meerdere AI-chatbots:</strong> We raden aan om de gegenereerde prompt uit te proberen bij verschillende AI-assistenten (zoals ChatGPT, Claude, Perplexity en Google Gemini). Elk platform heeft toegang tot andere bronnen en kan unieke tool-suggesties geven, waardoor u een breder overzicht krijgt.
-                        </div>
-                      </li>
-                      <li className="flex gap-3">
-                        <span className="text-green-600 font-bold mt-1">3.</span>
-                        <div>
-                          <strong>U kunt vragen overslaan:</strong> Als u bij een vraag het antwoord niet weet of liever niet invult, kunt u deze overslaan. Houd er wel rekening mee dat dit de kwaliteit van de aanbevelingen kan beïnvloeden.
-                        </div>
-                      </li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <button
-                  onClick={() => setCurrentScreen('intro')}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
-                >
-                  <ChevronLeft size={20} />
-                  Terug
-                </button>
+                const currentQ = this.questions[this.questionStep];
                 
-                <button
-                  onClick={() => {
-                    setCurrentScreen('questions');
-                    setQuestionStep(0);
-                  }}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-lg"
-                >
-                  Begin met vragenlijst
-                  <ChevronRight size={24} />
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="mb-8">
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div
-                    className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                    style={{ width: `${progress}%` }}
-                  />
-                </div>
-                <p className="text-sm text-gray-600 mt-2">
-                  Vraag {questionStep + 1} van {questions.length}
-                </p>
-              </div>
+                if (currentQ && currentQ.conditional && currentQ.showWhen) {
+                    let previousAnswer;
+                    if (currentQ.id === 'procesAnders') {
+                        previousAnswer = this.formData['proces'];
+                    } else if (currentQ.id === 'systeemNaam') {
+                        previousAnswer = this.formData['integratie'];
+                    } else if (currentQ.id === 'herkomstAnders') {
+                        previousAnswer = this.formData['herkomst'];
+                    }
+                    
+                    if (!currentQ.showWhen.includes(previousAnswer)) {
+                        this.questionStep++;
+                        this.render();
+                        return;
+                    }
+                }
+                
+                let nextStepNum = this.questionStep + 1;
+                while (nextStepNum < this.questions.length) {
+                    const nextQ = this.questions[nextStepNum];
+                    if (nextQ.conditional && nextQ.showWhen) {
+                        let relevantAnswer;
+                        if (nextQ.id === 'procesAnders') {
+                            relevantAnswer = this.formData['proces'];
+                        } else if (nextQ.id === 'systeemNaam') {
+                            relevantAnswer = this.formData['integratie'];
+                        } else if (nextQ.id === 'herkomstAnders') {
+                            relevantAnswer = this.formData['herkomst'];
+                        }
+                        
+                        if (!nextQ.showWhen.includes(relevantAnswer)) {
+                            nextStepNum++;
+                            continue;
+                        }
+                    }
+                    break;
+                }
+                
+                if (nextStepNum >= this.questions.length) {
+                    this.generatePrompt();
+                } else {
+                    this.questionStep = nextStepNum;
+                    this.render();
+                }
+            },
 
-              {currentQuestion && (
-              <div className="mb-8">
-                <h2 className="text-xl font-semibold text-gray-800 mb-4">
-                  {currentQuestion.question}
-                </h2>
+            skipQuestion() {
+                if (this.questionStep < this.questions.length - 1) {
+                    this.questionStep++;
+                    this.render();
+                } else {
+                    this.generatePrompt();
+                }
+            },
 
-                {currentQuestion.hasInfo && (
-                  <button
-                    onClick={() => {
-                      setViewingProcessInfo(true);
-                      setProcessInfoStep(0);
-                    }}
-                    className="mb-4 px-6 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold w-full"
-                  >
-                    {currentQuestion.infoButtonText}
-                  </button>
-                )}
+            prevStep() {
+                if (this.questionStep === 0) {
+                    this.currentScreen = 'tips';
+                } else if (this.questionStep > 0) {
+                    this.questionStep--;
+                }
+                this.render();
+            },
 
-                {currentQuestion.type === 'text' && (
-                  <input
-                    type="text"
-                    value={formData[currentQuestion.id]}
-                    onChange={(e) => handleInputChange(currentQuestion.id, e.target.value)}
-                    placeholder={currentQuestion.placeholder}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                )}
+            resetTool() {
+                this.currentScreen = 'intro';
+                this.questionStep = 0;
+                this.formData = {
+                    bedrijfsnaam: '',
+                    proces: '',
+                    procesAnders: '',
+                    pijnpunt: [],
+                    specifiekeDoel: '',
+                    oplossingstype: '',
+                    digitalisatiegraad: '',
+                    budget: '',
+                    budgetJaarlijks: '',
+                    roiVerwachting: '',
+                    medewerkers: '',
+                    groeiVerwachting: '',
+                    urgentie: '',
+                    technischeKennis: '',
+                    trainingVoorkeur: '',
+                    integratie: '',
+                    systeemNaam: '',
+                    dataGevoeligheid: [],
+                    herkomst: '',
+                    herkomstAnders: ''
+                };
+                this.generatedPrompt = '';
+                this.render();
+            },
 
-                {currentQuestion.type === 'textarea' && (
-                  <textarea
-                    value={formData[currentQuestion.id]}
-                    onChange={(e) => handleInputChange(currentQuestion.id, e.target.value)}
-                    placeholder={currentQuestion.placeholder}
-                    rows={4}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  />
-                )}
+            copyToClipboard() {
+                navigator.clipboard.writeText(this.generatedPrompt).then(() => {
+                    alert('Prompt gekopieerd naar klembord!');
+                });
+            },
 
-                {currentQuestion.type === 'select' && (
-                  <select
-                    value={formData[currentQuestion.id]}
-                    onChange={(e) => handleInputChange(currentQuestion.id, e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="">-- Maak een keuze --</option>
-                    {currentQuestion.options.map((option, index) => (
-                      <option key={index} value={option}>
-                        {option}
-                      </option>
-                    ))}
-                  </select>
-                )}
+            render() {
+                const container = document.getElementById('app');
+                
+                let progress = 0;
+                if (this.currentScreen === 'intro') {
+                    progress = 0;
+                } else if (this.currentScreen === 'tips') {
+                    progress = 5;
+                } else if (this.currentScreen === 'result') {
+                    progress = 100;
+                } else {
+                    progress = ((this.questionStep + 1) / (this.questions.length + 1)) * 100;
+                }
 
-                {currentQuestion.type === 'multiselect' && (
-                  <div className="space-y-2">
-                    {currentQuestion.options.map((option, index) => {
-                      const isSelected = formData[currentQuestion.id]?.includes(option);
-                      return (
-                        <label
-                          key={index}
-                          className={`flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${
-                            isSelected
-                              ? 'border-blue-500 bg-blue-50'
-                              : 'border-gray-300 hover:border-blue-300'
-                          }`}
+                if (this.viewingProcessInfo) {
+                    const currentProcess = this.processDescriptions[this.processInfoStep];
+                    const processProgress = ((this.processInfoStep + 1) / this.processDescriptions.length) * 100;
+
+                    container.innerHTML = `
+                        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                            <div class="max-w-3xl mx-auto">
+                                <div class="bg-white rounded-lg shadow-xl p-8">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="text-blue-600">${icons.truck}</div>
+                                        <div>
+                                            <h1 class="text-3xl font-bold text-gray-800">Uitleg Transportprocessen</h1>
+                                            <p class="text-gray-600">Leer meer over elk proces</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-8">
+                                        <div class="w-full bg-gray-200 rounded-full h-2">
+                                            <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: ${processProgress}%"></div>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mt-2">
+                                            Proces ${this.processInfoStep + 1} van ${this.processDescriptions.length}
+                                        </p>
+                                    </div>
+
+                                    <div class="mb-8">
+                                        <div class="bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
+                                            <h2 class="text-2xl font-bold text-blue-900 mb-4">
+                                                ${currentProcess.name}
+                                            </h2>
+                                            <p class="text-gray-700 leading-relaxed text-lg mb-4">
+                                                ${currentProcess.description}
+                                            </p>
+                                            <button onclick="app.selectProcess('${currentProcess.name}')" class="w-full px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold">
+                                                ✓ Kies dit proces
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-4">
+                                        ${this.processInfoStep > 0 ? `
+                                            <button onclick="app.prevProcessInfo()" class="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold">
+                                                <span>${icons.chevronLeft}</span>
+                                                Vorige
+                                            </button>
+                                        ` : ''}
+                                        
+                                        ${this.processInfoStep < this.processDescriptions.length - 1 ? `
+                                            <button onclick="app.nextProcessInfo()" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold">
+                                                Volgende proces
+                                                <span>${icons.chevronRight}</span>
+                                            </button>
+                                        ` : `
+                                            <button onclick="app.closeProcessInfo()" class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition font-semibold">
+                                                ✓ Terug naar vragen
+                                            </button>
+                                        `}
+                                    </div>
+
+                                    <button onclick="app.closeProcessInfo()" class="w-full mt-4 px-6 py-2 text-gray-600 hover:text-gray-800 transition">
+                                        ← Direct terug naar vragen
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (this.generatedPrompt && this.currentScreen === 'result') {
+                    container.innerHTML = `
+                        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl p-8">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="text-green-600">${icons.fileText}</div>
+                                    <h2 class="text-2xl font-bold text-gray-800">Uw Gepersonaliseerde Zoekprompt</h2>
+                                </div>
+                                
+                                <div class="bg-gray-50 border border-gray-200 rounded-lg p-6 mb-6 max-h-96 overflow-y-auto">
+                                    <pre class="whitespace-pre-wrap text-sm text-gray-700 font-mono">${this.generatedPrompt}</pre>
+                                </div>
+
+                                <div class="mb-6 bg-blue-50 border-l-4 border-blue-600 p-6 rounded-lg">
+                                    <h3 class="font-semibold text-blue-900 mb-3">📋 Volgende stap: Gebruik de prompt</h3>
+                                    <p class="text-gray-700 mb-3">
+                                        Kopieer de prompt hieronder en plak deze in een AI-chatbot naar keuze. De chatbot zal u helpen de beste AI-tools voor uw specifieke situatie te vinden.
+                                    </p>
+                                    <p class="text-gray-700 mb-2 font-semibold">Aanbevolen AI-chatbots:</p>
+                                    <ul class="list-disc list-inside ml-4 text-gray-600 space-y-1">
+                                        <li><strong>ChatGPT</strong> - chat.openai.com</li>
+                                        <li><strong>Claude</strong> - claude.ai</li>
+                                        <li><strong>Perplexity</strong> - perplexity.ai</li>
+                                        <li><strong>Google Gemini</strong> - gemini.google.com</li>
+                                        <li><strong>Microsoft Copilot</strong> - copilot.microsoft.com</li>
+                                        <li><strong>GPT-NL.com</strong> - gpt-nl.com</li>
+                                    </ul>
+                                    <p class="text-sm text-blue-700 mt-3 italic">
+                                        💡 Tip: Test de prompt bij meerdere chatbots voor een breder overzicht van beschikbare tools!
+                                    </p>
+                                </div>
+
+                                <div class="flex gap-4">
+                                    <button onclick="app.copyToClipboard()" class="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition font-semibold">
+                                        📋 Kopieer Prompt
+                                    </button>
+                                    <button onclick="app.resetTool()" class="flex-1 bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition font-semibold">
+                                        🔄 Opnieuw Beginnen
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (this.currentScreen === 'intro') {
+                    container.innerHTML = `
+                        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                            <div class="max-w-3xl mx-auto">
+                                <div class="bg-white rounded-lg shadow-xl p-8">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="text-blue-600">${icons.truck}</div>
+                                        <div>
+                                            <h1 class="text-3xl font-bold text-gray-800">AI Tool Finder voor Logistiek</h1>
+                                            <p class="text-gray-600">Voor transportbedrijven</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-6 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-600 p-8 rounded-lg">
+                                        <h2 class="text-2xl font-bold text-blue-900 mb-4">
+                                            💡 Welkom bij de AI Tool Finder voor Logistiek
+                                        </h2>
+                                        <div class="space-y-4 text-gray-700 leading-relaxed">
+                                            <p>
+                                                Deze tool helpt u bij het vinden van geschikte AI-tools voor uw logistieke processen. 
+                                            </p>
+                                            
+                                            <div class="bg-white p-4 rounded-lg border border-blue-200">
+                                                <h3 class="font-semibold text-blue-900 mb-2">🔍 Hoe werkt het?</h3>
+                                                <ol class="list-decimal list-inside space-y-2 ml-2">
+                                                    <li>U beantwoordt een aantal vragen over uw bedrijf, doelen en eisen</li>
+                                                    <li>De tool genereert een <strong>gepersonaliseerde zoekprompt</strong> op basis van uw antwoorden</li>
+                                                    <li>U kunt deze prompt kopiëren en plakken in een AI-chatbot zoals:
+                                                        <ul class="list-disc list-inside ml-6 mt-1 text-gray-600">
+                                                            <li>ChatGPT</li>
+                                                            <li>Claude</li>
+                                                            <li>Perplexity</li>
+                                                            <li>Google Gemini</li>
+                                                            <li>Microsoft Copilot</li>
+                                                            <li>GPT-NL.com</li>
+                                                        </ul>
+                                                    </li>
+                                                    <li>De chatbot helpt u vervolgens de beste AI-tools voor uw specifieke situatie te vinden</li>
+                                                </ol>
+                                            </div>
+
+                                            <p class="text-sm text-gray-600 italic">
+                                                💡 Het duurt ongeveer 5-12 minuten om alle vragen te beantwoorden.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <button onclick="app.goToTips()" class="w-full flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-lg">
+                                        Tips voordat u begint
+                                        <span>${icons.chevronRight}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                if (this.currentScreen === 'tips') {
+                    container.innerHTML = `
+                        <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                            <div class="max-w-3xl mx-auto">
+                                <div class="bg-white rounded-lg shadow-xl p-8">
+                                    <div class="flex items-center gap-3 mb-6">
+                                        <div class="text-blue-600">${icons.truck}</div>
+                                        <div>
+                                            <h1 class="text-3xl font-bold text-gray-800">AI Tool Finder voor Logistiek</h1>
+                                            <p class="text-gray-600">Voor transportbedrijven</p>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-6 bg-gradient-to-r from-green-50 to-teal-50 border-l-4 border-green-600 p-8 rounded-lg">
+                                        <h2 class="text-2xl font-bold text-green-900 mb-4">
+                                            💡 Tips voordat u begint
+                                        </h2>
+                                        <div class="space-y-4 text-gray-700 leading-relaxed">
+                                            <p>
+                                                Om het maximale uit deze tool te halen, hebben we een aantal handige tips voor u:
+                                            </p>
+                                            
+                                            <div class="bg-white p-4 rounded-lg border border-green-200">
+                                                <h3 class="font-semibold text-green-900 mb-3">📝 Aanbevelingen:</h3>
+                                                <ul class="space-y-3">
+                                                    <li class="flex gap-3">
+                                                        <span class="text-green-600 font-bold mt-1">1.</span>
+                                                        <div>
+                                                            <strong>Wees zo compleet mogelijk:</strong> Hoe uitgebreider en specifieker u de vragen beantwoordt, hoe relevanter en gerichter de aanbevolen AI-tools zullen zijn. Neem de tijd om uw situatie goed te beschrijven.
+                                                        </div>
+                                                    </li>
+                                                    <li class="flex gap-3">
+                                                        <span class="text-green-600 font-bold mt-1">2.</span>
+                                                        <div>
+                                                            <strong>Test bij meerdere AI-chatbots:</strong> We raden aan om de gegenereerde prompt uit te proberen bij verschillende AI-assistenten (zoals ChatGPT, Claude, Perplexity en Google Gemini). Elk platform heeft toegang tot andere bronnen en kan unieke tool-suggesties geven, waardoor u een breder overzicht krijgt.
+                                                        </div>
+                                                    </li>
+                                                    <li class="flex gap-3">
+                                                        <span class="text-green-600 font-bold mt-1">3.</span>
+                                                        <div>
+                                                            <strong>U kunt vragen overslaan:</strong> Als u bij een vraag het antwoord niet weet of liever niet invult, kunt u deze overslaan. Houd er wel rekening mee dat dit de kwaliteit van de aanbevelingen kan beïnvloeden.
+                                                        </div>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="flex gap-4">
+                                        <button onclick="app.goToIntro()" class="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold">
+                                            <span>${icons.chevronLeft}</span>
+                                            Terug
+                                        </button>
+                                        
+                                        <button onclick="app.startQuestions()" class="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold text-lg">
+                                            Begin met vragenlijst
+                                            <span>${icons.chevronRight}</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Questions screen
+                const currentQuestion = this.questions[this.questionStep];
+                if (!currentQuestion) return;
+
+                let questionHTML = '';
+                
+                if (currentQuestion.type === 'text') {
+                    questionHTML = `
+                        <input 
+                            type="text" 
+                            id="input-${currentQuestion.id}"
+                            value="${this.formData[currentQuestion.id] || ''}"
+                            placeholder="${currentQuestion.placeholder}"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        />
+                    `;
+                } else if (currentQuestion.type === 'textarea') {
+                    questionHTML = `
+                        <textarea 
+                            id="input-${currentQuestion.id}"
+                            placeholder="${currentQuestion.placeholder}"
+                            rows="4"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        >${this.formData[currentQuestion.id] || ''}</textarea>
+                    `;
+                } else if (currentQuestion.type === 'select') {
+                    questionHTML = `
+                        <select 
+                            id="input-${currentQuestion.id}"
+                            class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         >
-                          <input
-                            type="checkbox"
-                            checked={isSelected}
-                            onChange={() => handleMultiSelectChange(currentQuestion.id, option)}
-                            className="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                          />
-                          <span className="text-gray-700">{option}</span>
-                        </label>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-              )}
+                            <option value="">-- Maak een keuze --</option>
+                            ${currentQuestion.options.map(option => `
+                                <option value="${option}" ${this.formData[currentQuestion.id] === option ? 'selected' : ''}>
+                                    ${option}
+                                </option>
+                            `).join('')}
+                        </select>
+                    `;
+                } else if (currentQuestion.type === 'multiselect') {
+                    questionHTML = `
+                        <div class="space-y-2">
+                            ${currentQuestion.options.map((option, index) => {
+                                const isSelected = (this.formData[currentQuestion.id] || []).includes(option);
+                                return `
+                                    <label class="flex items-center gap-3 p-4 border-2 rounded-lg cursor-pointer transition ${isSelected ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-blue-300'}">
+                                        <input 
+                                            type="checkbox" 
+                                            value="${option}"
+                                            ${isSelected ? 'checked' : ''}
+                                            onchange="app.handleMultiSelectChange('${currentQuestion.id}', '${option}')"
+                                            class="w-5 h-5 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                                        />
+                                        <span class="text-gray-700">${option}</span>
+                                    </label>
+                                `;
+                            }).join('')}
+                        </div>
+                    `;
+                }
 
-              <div className="flex gap-4">
-                <button
-                  onClick={prevStep}
-                  className="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold"
-                >
-                  <ChevronLeft size={20} />
-                  Vorige
-                </button>
-                
-                <button
-                  onClick={skipQuestion}
-                  className="px-6 py-3 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition font-semibold"
-                >
-                  ⏭️ Overslaan
-                </button>
-                
-                {currentQuestion && (
-                <button
-                  onClick={nextStep}
-                  disabled={currentQuestion.optional ? false : (currentQuestion.type === 'multiselect' ? (!formData[currentQuestion.id] || formData[currentQuestion.id].length === 0) : !formData[currentQuestion.id])}
-                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                  {questionStep === questions.length - 1 ? 'Genereer Prompt' : 'Volgende'}
-                  <ChevronRight size={20} />
-                </button>
-                )}
-              </div>
-            </>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-};
+                const isDisabled = currentQuestion.optional ? false : 
+                    (currentQuestion.type === 'multiselect' ? 
+                        (!this.formData[currentQuestion.id] || this.formData[currentQuestion.id].length === 0) : 
+                        !this.formData[currentQuestion.id]);
 
-export default TransportAIToolFinder;
+                container.innerHTML = `
+                    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+                        <div class="max-w-3xl mx-auto">
+                            <div class="bg-white rounded-lg shadow-xl p-8">
+                                <div class="flex items-center gap-3 mb-6">
+                                    <div class="text-blue-600">${icons.truck}</div>
+                                    <div>
+                                        <h1 class="text-3xl font-bold text-gray-800">AI Tool Finder voor Logistiek</h1>
+                                        <p class="text-gray-600">Voor transportbedrijven</p>
+                                    </div>
+                                </div>
+
+                                <div class="mb-8">
+                                    <div class="w-full bg-gray-200 rounded-full h-2">
+                                        <div class="bg-blue-600 h-2 rounded-full transition-all duration-300" style="width: ${progress}%"></div>
+                                    </div>
+                                    <p class="text-sm text-gray-600 mt-2">
+                                        Vraag ${this.questionStep + 1} van ${this.questions.length}
+                                    </p>
+                                </div>
+
+                                <div class="mb-8">
+                                    <h2 class="text-xl font-semibold text-gray-800 mb-4">
+                                        ${currentQuestion.question}
+                                    </h2>
+
+                                    ${currentQuestion.hasInfo ? `
+                                        <button onclick="app.openProcessInfo()" class="mb-4 px-6 py-3 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition font-semibold w-full">
+                                            ${currentQuestion.infoButtonText}
+                                        </button>
+                                    ` : ''}
+
+                                    ${questionHTML}
+                                </div>
+
+                                <div class="flex gap-4">
+                                    <button onclick="app.prevStep()" class="flex items-center gap-2 px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-semibold">
+                                        <span>${icons.chevronLeft}</span>
+                                        Vorige
+                                    </button>
+                                    
+                                    <button onclick="app.skipQuestion()" class="px-6 py-3 bg-yellow-100 text-yellow-800 rounded-lg hover:bg-yellow-200 transition font-semibold">
+                                        ⏭️ Overslaan
+                                    </button>
+                                    
+                                    <button 
+                                        onclick="app.nextStep()" 
+                                        ${isDisabled ? 'disabled' : ''}
+                                        class="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-semibold ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}"
+                                    >
+                                        ${this.questionStep === this.questions.length - 1 ? 'Genereer Prompt' : 'Volgende'}
+                                        <span>${icons.chevronRight}</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                // Add event listeners for inputs
+                if (currentQuestion.type === 'text' || currentQuestion.type === 'textarea' || currentQuestion.type === 'select') {
+                    const input = document.getElementById(`input-${currentQuestion.id}`);
+                    if (input) {
+                        input.addEventListener('input', (e) => {
+                            this.handleInputChange(currentQuestion.id, e.target.value);
+                        });
+                        input.addEventListener('change', (e) => {
+                            this.handleInputChange(currentQuestion.id, e.target.value);
+                        });
+                    }
+                }
+            },
+
+            goToTips() {
+                this.currentScreen = 'tips';
+                this.render();
+            },
+
+            goToIntro() {
+                this.currentScreen = 'intro';
+                this.render();
+            },
+
+            startQuestions() {
+                this.currentScreen = 'questions';
+                this.questionStep = 0;
+                this.render();
+            },
+
+            openProcessInfo() {
+                this.viewingProcessInfo = true;
+                this.processInfoStep = 0;
+                this.render();
+            },
+
+            closeProcessInfo() {
+                this.viewingProcessInfo = false;
+                this.processInfoStep = 0;
+                this.render();
+            },
+
+            nextProcessInfo() {
+                if (this.processInfoStep < this.processDescriptions.length - 1) {
+                    this.processInfoStep++;
+                    this.render();
+                }
+            },
+
+            prevProcessInfo() {
+                if (this.processInfoStep > 0) {
+                    this.processInfoStep--;
+                    this.render();
+                }
+            },
+
+            selectProcess(processName) {
+                this.handleInputChange('proces', processName);
+                this.viewingProcessInfo = false;
+                this.processInfoStep = 0;
+                this.render();
+            }
+        };
+
+        // Initialize app
+        app.render();
+    </script>
+</body>
+</html>
