@@ -51,7 +51,7 @@
                 { id: 'specifiekeDoel', question: 'Kunt u het doel specifieker omschrijven?', type: 'textarea', placeholder: 'Bijv. We willen onze rijtijden met 15% verkorten en brandstofkosten verlagen' },
                 { id: 'oplossingstype', question: 'Wat voor type oplossing zoekt u?', type: 'select', options: ['Zelfstandige AI-tool (specifiek voor één functie)', 'AI-functionaliteit binnen bestaand systeem (TMS/WMS/ERP met AI)', 'Complete softwaresystemen met AI-ondersteuning', 'Geen voorkeur - alle opties tonen', 'Anders'] },
                 { id: 'digitalisatiegraad', question: 'Hoe digitaal werkt uw bedrijf momenteel?', type: 'select', options: ['Voornamelijk papier en Excel', 'Mix van papier en digitale systemen', 'Grotendeels gedigitaliseerd met losse systemen', 'Volledig geïntegreerd digitaal ecosysteem', 'Anders'] },
-                { id: 'budget', question: 'Wat is uw eenmalige investeringsbudget (aanschaf/implementatie)?', type: 'select', options: ['Minder dan €5.000', '€5.000 - €15.000', '€15.000 - €30.000', '€30.000 - €50.000', 'Meer dan €50.000', 'Anders'] },
+                { id: 'budget', question: 'Wat is uw eenmalige investeringsbudget (aanschaf/implementatie)?', type: 'select', options: ['Minder dan €2.500', '€2.500 - €10.000', '€10.000 - €25.000', '€25.000 - €75.000', '€75.000 - €150.000', 'Meer dan €150.000', 'Anders'] },
                 { id: 'budgetJaarlijks', question: 'Wat is uw jaarlijks budget voor licenties en onderhoud?', type: 'select', options: ['Minder dan €1.000 per jaar', '€1.000 - €5.000 per jaar', '€5.000 - €15.000 per jaar', '€15.000 - €30.000 per jaar', 'Meer dan €30.000 per jaar', 'Anders'] },
                 { id: 'roiVerwachting', question: 'Binnen welke termijn verwacht u rendement te zien?', type: 'select', options: ['Direct (binnen 3 maanden)', 'Kort (3-6 maanden)', 'Middellang (6-12 maanden)', 'Lang (1-2 jaar)', 'Onbekend', 'Anders'] },
                 { id: 'medewerkers', question: 'Hoeveel medewerkers zullen de tool gebruiken?', type: 'select', options: ['1-5 medewerkers', '6-15 medewerkers', '16-50 medewerkers', 'Meer dan 50 medewerkers', 'Anders'] },
@@ -83,8 +83,11 @@
                 
                 const prompt = `# AI Tool Zoekopdracht voor ${formData.bedrijfsnaam || 'Transportbedrijf'}
 
+## BELANGRIJKE CONTEXT
+Dit bedrijf is actief in de **logistiek sector**. ALLE aanbevolen AI-tools MOETEN specifiek geschikt zijn voor logistieke bedrijven, of minimaal bewezen toepassingen hebben in deze sector. Geen generieke business tools, tenzij ze expliciet logistiek functionaliteit hebben.
+
 ## Bedrijfsprofiel
-- **Sector**: Transport en logistiek (MKB)
+- **Sector**: Logistiek (MKB)
 - **Aantal gebruikers**: ${formData.medewerkers}
 - **Groei verwachting**: ${formData.groeiVerwachting}
 - **Huidige digitalisatie**: ${formData.digitalisatiegraad}
@@ -92,8 +95,13 @@
 
 ## Te verbeteren proces
 **Hoofdproces**: ${procesText}
+
 **Grootste uitdaging**: ${pijnpuntText}
+
 **Specifiek doel**: ${formData.specifiekeDoel}
+
+**Transport/logistiek context**: ${procesText === formData.procesAnders ? 'Dit is een specifiek logistiek proces dat verbeterd moet worden met AI' : 'Dit is een standaard logistiek proces'}
+
 **Type oplossing**: ${formData.oplossingstype}
 
 ## Zoekcriteria voor AI-tools
@@ -115,11 +123,34 @@ ${formData.herkomstAnders ? `- **Toelichting herkomst**: ${formData.herkomstAnde
 
 ### Gezochte functionaliteiten
 Zoek naar AI-tools die specifiek geschikt zijn voor:
-1. ${procesText} in de transportsector
+1. ${procesText} in de logistiek sector
 2. MKB-vriendelijk (niet te complex, betaalbaar)
 3. ${formData.integratie.includes('Ja') ? 'Met integratiemogelijkheden' : 'Als standalone oplossing'}
 4. Geschikt voor teams van ${formData.medewerkers}
 5. Type oplossing: ${formData.oplossingstype}
+
+**VERPLICHT - LOGISTIEK FOCUS**: 
+- Alle tools MOETEN specifiek ontwikkeld zijn voor logistiek, OF
+- Bewezen succesverhalen hebben in logistiek sector, OF  
+- Specifieke functionaliteit bieden die direct relevant is voor logistieke operaties (routing, load matching, carrier selection, freight optimization, warehouse management, etc.)
+- GEEN generieke CRM, sales of marketing tools zonder logistiek-specifieke features
+
+**Voorbeelden van GOEDE logistiek AI-tools**:
+- Route optimalisatie tools
+- Freight matching platforms  
+- TMS/WMS systemen met AI
+- Load planning software
+- Predictive maintenance voor voertuigen
+- Dynamic pricing voor vracht
+- Warehouse automation met AI
+- Document processing voor logistieke documenten
+- Supply chain visibility platforms
+
+**Voorbeelden van SLECHTE matches** (niet acceptabel):
+- Algemene CRM systemen zonder logistiek integratie
+- Standaard marketing automation tools
+- Generieke sales platforms
+- Basis chatbots zonder logistiek kennis
 
 **BELANGRIJK**: Geef een lijst van minimaal 10 verschillende AI-tools die aan deze criteria voldoen. Sorteer ze op relevantie en geschiktheid voor het specifieke proces. Let vooral op het gewenste oplossingstype: ${formData.oplossingstype}
 
@@ -135,32 +166,40 @@ Zoek naar AI-tools die specifiek geschikt zijn voor:
 - **Nederlandse ondersteuning**: Bij voorkeur beschikbaar
 
 ### Zoektermen voor online research
-Gebruik deze zoektermen in zoekmachines:
-- "AI tools ${procesText} transport MKB"
-- "transport management software ${procesText}"
-- "AI oplossingen logistiek Nederland"
-- "${procesText} automation transport"
-- "best AI tools transport SME"
+Gebruik deze zoektermen in zoekmachines om LOGISTIEK-SPECIFIEKE AI-tools te vinden:
+- "AI tools ${procesText} logistiek"
+- "logistics management software AI ${procesText}"
+- "logistics AI solutions ${procesText}"
+- "supply chain ${procesText} AI automation"
+- "TMS WMS with AI for ${procesText}"
+- "logistics ${procesText} artificial intelligence"
+- "warehousing ${procesText} machine learning"
+- "AI oplossingen logistiek Nederland ${procesText}"
 
 ### Te evalueren aspecten bij gevonden tools
 Voor elke tool in de lijst van minimaal 10 opties, evalueer:
-1. Functionaliteit: Dekt het onze specifieke behoefte?
-2. Kosten: Totale kosten (licentie + implementatie + training)
-3. Gebruiksvriendelijkheid: Demo beschikbaar?
-4. Referenties: Ervaringen van vergelijkbare transportbedrijven
-5. Support: Beschikbaarheid Nederlandse support
-6. Integratie: ${formData.integratie}
-7. Proefperiode: Mogelijkheid tot testen voor aankoop
+1. **Logistiek Specificiteit**: Is dit echt een logistiek tool of generieke software? (KRITISCH)
+2. Functionaliteit: Dekt het onze specifieke behoefte in logistiek context?
+3. Bewezen in logistiek: Zijn er klanten/cases in logistiek sector?
+4. Kosten: Totale kosten (licentie + implementatie + training)
+5. Gebruiksvriendelijkheid: Demo beschikbaar?
+6. Referenties: Ervaringen van vergelijkbare logistieke bedrijven
+7. Support: Beschikbaarheid Nederlandse support
+8. Integratie: ${formData.integratie}
+9. Proefperiode: Mogelijkheid tot testen voor aankoop
 
 ### Gewenste output
-Geef een overzicht van minimaal 10 AI-tools in een gestructureerde lijst met voor elke tool:
+Geef een overzicht van minimaal 10 AI-tools **die specifiek voor logistiek ontwikkeld zijn** in een gestructureerde lijst met voor elke tool:
 - Naam van de tool
-- Korte beschrijving (2-3 zinnen)
-- Belangrijkste functionaliteiten
+- Korte beschrijving (2-3 zinnen) - **vermeld expliciet hoe het logistiek-specifiek is**
+- Belangrijkste functionaliteiten **met focus op logistieke operaties**
 - Geschatte kosten
+- **Logistiek sector bewijs**: Noem minimaal 1 voorbeeld van gebruik in logistiek
 - Sterke punten en aandachtspunten
 - Geschiktheid voor dit specifieke pijnpunt: ${pijnpuntText}
 - Link naar website (indien beschikbaar)
+
+**LET OP**: Als je geen 10 logistiek-specifieke AI-tools kunt vinden die passen bij het proces "${procesText}", geef dan aan waarom en suggereer gerelateerde logistieke processen waar wel geschikte AI-tools voor bestaan.
 
 **VERPLICHT: Maak een vergelijkingstabel** met alle 10+ tools en geef scores (1-5 sterren) voor:
 - Prijs-kwaliteit verhouding
@@ -179,6 +218,7 @@ Sluit tools uit die:
 - Buiten de opgegeven budgetrange vallen
 - Niet voldoen aan de opgegeven data beveiligingseisen
 - Niet passen bij de huidige digitalisatiegraad: ${formData.digitalisatiegraad}
+- GEEN bewezen toepassing hebben in de logistiek sector
 
 ### Implementatie advies
 Geef voor de top 3 meest geschikte tools:
@@ -339,6 +379,19 @@ Geef voor de top 3 meest geschikte tools:
                                     💡 Tip: Test de prompt bij meerdere chatbots voor een breder overzicht van beschikbare tools!
                                 </p>
                             </div>
+                            <div className="mb-6 bg-green-50 border-l-4 border-green-600 p-6 rounded-lg">
+                                <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                                    🔒 Privacy herinnering
+                                </h3>
+                                <div className="space-y-2 text-gray-700 text-sm">
+                                    <p>
+                                        Deze tool heeft geen data opgeslagen. De prompt die u nu kopieert bevat alleen de informatie die u zelf heeft ingevuld.
+                                    </p>
+                                    <p className="font-medium">
+                                        Let op: Zodra u deze prompt deelt met een AI-chatbot (ChatGPT, Claude, etc.), vallen uw gegevens onder het privacybeleid van die dienst. Controleer de prompt en verwijder eventueel gevoelige informatie voordat u deze deelt.
+                                    </p>
+                                </div>
+                            </div>
                             <div className="flex gap-4">
                                 <button onClick={copyToClipboard}
                                     className="flex-1 bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-semibold">
@@ -361,7 +414,7 @@ Geef voor de top 3 meest geschikte tools:
                             <span className="text-4xl">🚚</span>
                             <div>
                                 <h1 className="text-3xl font-bold text-gray-800">AI Tool Finder voor Logistiek</h1>
-                                <p className="text-gray-600">Voor transportbedrijven</p>
+                                <p className="text-gray-600">Vind de juiste AI-oplossing voor uw bedrijf</p>
                             </div>
                         </div>
 
@@ -390,6 +443,19 @@ Geef voor de top 3 meest geschikte tools:
                                             </ol>
                                         </div>
                                         <p className="text-sm text-gray-600 italic">💡 Het duurt ongeveer 5-12 minuten om alle vragen te beantwoorden.</p>
+                                    </div>
+                                </div>
+                                <div className="mb-6 bg-green-50 border-l-4 border-green-600 p-6 rounded-lg">
+                                    <h3 className="font-semibold text-green-900 mb-3 flex items-center gap-2">
+                                        🔒 Privacy informatie
+                                    </h3>
+                                    <div className="space-y-2 text-gray-700 text-sm">
+                                        <p>
+                                            Deze vragenlijst tool verzamelt geen data en slaat niets op. Uw antwoorden worden alleen gebruikt om een tekstprompt te genereren die u zelf kopieert.
+                                        </p>
+                                        <p className="font-medium">
+                                            Let op: Als u de gegenereerde prompt deelt met een externe AI-chatbot (ChatGPT, Claude, etc.), vallen uw gegevens onder het privacybeleid van die dienst. Deel alleen informatie waar u comfortabel mee bent.
+                                        </p>
                                     </div>
                                 </div>
                                 <button onClick={() => setCurrentScreen('tips')}
